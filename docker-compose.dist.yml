@@ -1,0 +1,29 @@
+x-shared-logs: &shared-logs
+  logging:
+    driver: "json-file"
+    options:
+      max-size: "10k"
+
+x-shared-deploy: &shared-deploy
+  deploy:
+    resources:
+      reservations:
+        devices:
+          - driver: nvidia
+            count: all
+            capabilities: [ gpu ]
+  <<: *shared-logs
+
+services:
+  api:
+    restart: "unless-stopped"
+    build:
+      context: .
+    volumes:
+      - ./models:/app/models
+    environment:
+      CANARY_MODEL_PATH: /app/models
+      CANARY_MODEL_NAME: nvidia/canary-1b-flash
+    ports:
+      - "8000:8000"
+    <<: *shared-deploy
