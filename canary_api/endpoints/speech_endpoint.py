@@ -67,7 +67,7 @@ async def process_asr_request(
         os.remove(audio_path)
 
 
-@router.post("/audio/asr")
+@router.post("/audio/transcribe")
 async def asr_endpoint(request: Request):
     content_type = request.headers.get('Content-Type', '')
 
