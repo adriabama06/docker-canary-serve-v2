@@ -1,8 +1,16 @@
+import logging
 from pathlib import Path
 from nemo.collections.asr.models import EncDecMultiTaskModel
 
 from canary_api.utils.download_model import download_model
 from canary_api.settings import settings
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="[%(asctime)s] [%(name)s] [%(levelname)s] - %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S"
+)
+logger = logging.getLogger(__name__)
 
 
 class CanaryService:
@@ -18,12 +26,15 @@ class CanaryService:
         """
         Initializes the Canary model. Downloads it if not already present locally.
         """
+        logger.info(f"Initializing Canary model: {model_name}")
+
         # Construct full local path
         model_dir = Path(settings.models_path) / model_name
         model_file = model_dir / f"{model_dir.name}.nemo"
 
         # Download if not exists
         if not model_file.exists():
+            logger.info(f"Downloading model: {model_name}")
             Path(download_model(model_name=model_name, local_dir=settings.models_path))
 
         # Load model from local path

@@ -1,14 +1,11 @@
 import logging
-from pathlib import Path
-from typing import Optional, Tuple
+from typing import Optional
 import base64
 import os
-
 from pydantic import BaseModel, ValidationError
-from fastapi import APIRouter, UploadFile, File, Form, Request, HTTPException
-from fastapi.responses import FileResponse
-
+from fastapi import APIRouter, UploadFile, Request, HTTPException
 from tempfile import NamedTemporaryFile
+
 from canary_api.services.canary_service import CanaryService
 
 logging.basicConfig(
@@ -16,7 +13,7 @@ logging.basicConfig(
     format="[%(asctime)s] [%(name)s] [%(levelname)s] - %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S"
 )
-logger = logging.getLogger("canary_asr_api")
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -47,6 +44,7 @@ async def process_asr_request(
     batch_size: int
 ):
     if not audio_bytes or audio_bytes[:4] != b'RIFF':
+        logger.error("Invalid audio format (must be WAV)")
         raise HTTPException(400, "Invalid audio format (must be WAV)")
 
     # Save to temp file
@@ -67,7 +65,7 @@ async def process_asr_request(
         os.remove(audio_path)
 
 
-@router.post("/audio/transcribe")
+@router.post("/inference")
 async def asr_endpoint(request: Request):
     content_type = request.headers.get('Content-Type', '')
 
@@ -76,6 +74,7 @@ async def asr_endpoint(request: Request):
             form_data = await request.form()
             input_file: UploadFile = form_data.get('audio')
             if not input_file or not input_file.filename.lower().endswith('.wav'):
+                logger.error("Missing or invalid WAV file")
                 raise HTTPException(400, "Missing or invalid WAV file")
 
             audio_bytes = await input_file.read()
@@ -99,6 +98,7 @@ async def asr_endpoint(request: Request):
 
             request_data = ASRRequest(**json_data)
             if not request_data.input_audio_base64:
+                logger.error("Missing or invalid WAV file")
                 raise HTTPException(400, "Missing input_audio_base64")
 
             audio_bytes = base64.b64decode(request_data.input_audio_base64)
@@ -113,12 +113,21 @@ async def asr_endpoint(request: Request):
             )
 
         else:
+            logger.error("Unsupported media type")
             raise HTTPException(415, "Unsupported media type")
 
     except HTTPException as he:
+        logger.error(f"Request failed: {str(he)}")
         raise he
     except ValidationError as ve:
+        logger.error(f"Validation error: {str(ve)}")
         raise HTTPException(400, str(ve))
     except Exception as e:
         logger.error(f"Request failed: {str(e)}")
         raise HTTPException(500, "Internal server error")
+
+
+if __name__ == "__main__":
+    import uvicorn
+
+    uvicorn.run(router, host="0.0.0.0", port=9000)

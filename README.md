@@ -20,3 +20,14 @@ CANARY_BATCH_SIZE=1
 CANARY_PNC=yes
 CANARY_TIMESTAMPTS=no
 ```
+
+## Request example
+
+```shell
+curl http://localhost:5000/inference \
+  -H "Content-Type: multipart/form-data" \
+  -F file="@example.wav" \
+  -F model="base" \
+  -F language="auto" \
+  -F response_format="json"
+  ```

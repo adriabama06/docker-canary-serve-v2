@@ -24,4 +24,4 @@ pyannote.audio~=3.3.2
 webdataset~=0.2.111
 datasets~=3.5.0
 editdistance~=0.8.1
-ipython~=9.1.0
+ipython~=8.36.0

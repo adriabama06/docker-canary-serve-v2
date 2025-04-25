@@ -7,7 +7,7 @@ logging.basicConfig(
     format="[%(asctime)s] [%(name)s] [%(levelname)s] - %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S"
 )
-logger = logging.getLogger("fish_speech_api.services.tts_service")
+logger = logging.getLogger(__name__)
 
 
 def download_model(model_name: str, local_dir: str = "./models") -> str:
