@@ -39,6 +39,7 @@ class CanaryService:
 
         # Load model from local path
         self.model = EncDecMultiTaskModel.restore_from(str(model_file))
+        self.is_flash_model = "flash" in model_name.lower()
 
         # Apply decoding strategy
         decode_cfg = self.model.cfg.decoding
@@ -59,6 +60,14 @@ class CanaryService:
         """
         if not isinstance(audio_input, list):
             raise ValueError("audio_input must be a list of audio file paths.")
+
+        print({
+            "source_lang": source_lang,
+            "target_lang": target_lang,
+            "batch_size":  batch_size,
+            "pnc":         pnc,
+            "timestamps":  timestamps
+        })
 
         return self.model.transcribe(
             audio_input,
