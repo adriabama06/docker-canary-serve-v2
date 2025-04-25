@@ -62,7 +62,6 @@ class CanaryService:
             raise ValueError("audio_input must be a list of audio file paths.")
 
         # Convert timestamps parameter from string to bool/None
-        timestamps_flag = None
         if timestamps == 'yes':
             timestamps_flag = True
         elif timestamps == 'no' or timestamps is None:

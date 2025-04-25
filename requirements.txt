@@ -26,3 +26,4 @@ webdataset~=0.2.111
 datasets~=3.5.0
 editdistance~=0.8.1
 ipython~=8.36.0
+pydub~=0.25.1

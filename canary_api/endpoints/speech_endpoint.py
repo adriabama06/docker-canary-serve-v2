@@ -9,6 +9,7 @@ from tempfile import NamedTemporaryFile
 
 from canary_api.services.canary_service import CanaryService
 from canary_api.utils.split_audio_into_chunks import split_audio_into_chunks
+from canary_api.utils.ensure_mono_wav import ensure_mono_wav
 from canary_api.settings import settings
 
 logging.basicConfig(
@@ -24,7 +25,7 @@ transcriber = CanaryService()
 
 
 class ASRRequest(BaseModel):
-    input_audio_base64: Optional[str] = None
+    file: Optional[str] = None
     language: str = 'en'
     pnc: str = 'yes'
     timestamps: str = 'no'
@@ -51,6 +52,7 @@ async def process_asr_request(
         raise HTTPException(400, "Invalid audio format (must be WAV)")
 
     # Save original audio to temp file
+    audio_bytes = ensure_mono_wav(audio_bytes)
     audio_path = save_temp_audio(audio_bytes)
 
     try:
@@ -136,9 +138,9 @@ async def asr_endpoint(request: Request):
             json_data = await request.json()
 
             request_data = ASRRequest(**json_data)
-            if not request_data.input_audio_base64:
+            if not request_data.file:
                 logger.error("Missing or invalid WAV file")
-                raise HTTPException(400, "Missing input_audio_base64")
+                raise HTTPException(400, "Missing file")
 
             audio_bytes = base64.b64decode(request_data.file)
 
