@@ -4,3 +4,4 @@
 docker-compose.yml
 __pycache__
 .env
+*.wav

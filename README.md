@@ -7,7 +7,7 @@ API settings
 ```dotenv
 APP_WORKERS=1
 APP_BIND=0.0.0.0
-APP_PORT=8000
+APP_PORT=9000
 ```
 
 Canary ASR settings
@@ -24,7 +24,7 @@ CANARY_TIMESTAMPTS=no
 ## Request example
 
 ```shell
-curl http://localhost:5000/inference \
+curl http://gpu02:9000/inference \
   -H "Content-Type: multipart/form-data" \
   -F file="@example.wav" \
   -F model="base" \

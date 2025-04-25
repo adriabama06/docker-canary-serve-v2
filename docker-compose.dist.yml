@@ -25,5 +25,5 @@ services:
       CANARY_MODEL_PATH: /app/models
       CANARY_MODEL_NAME: nvidia/canary-1b-flash
     ports:
-      - "8000:8000"
+      - "9000:9000"
     <<: *shared-deploy
