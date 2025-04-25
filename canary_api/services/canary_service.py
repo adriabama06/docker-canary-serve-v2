@@ -51,7 +51,7 @@ class CanaryService:
         audio_input: list,
         batch_size: int = settings.batch_size,
         pnc: str = settings.pnc,
-        timestamps: bool | None = settings.timestamps,
+        timestamps: bool | None = False,
         source_lang: str = 'en',
         target_lang: str = 'en',
     ):
@@ -60,6 +60,13 @@ class CanaryService:
         """
         if not isinstance(audio_input, list):
             raise ValueError("audio_input must be a list of audio file paths.")
+
+        # Fix timestamps value
+        if isinstance(timestamps, str):
+            if timestamps.lower() == 'yes':
+                timestamps = True
+            else:
+                timestamps = None
 
         logger.debug({
             "source_lang": source_lang,
