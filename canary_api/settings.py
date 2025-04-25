@@ -1,6 +1,7 @@
 from pydantic import Field
 from pydantic_settings import BaseSettings
 
+
 class CanarySettings(BaseSettings):
     # Core
     models_path: str = Field("./models", description="Path to the models directory")
@@ -11,6 +12,9 @@ class CanarySettings(BaseSettings):
     batch_size: int = Field(1, description="Default batch size for transcription")
     pnc: str = Field("yes", description="Punctuation and capitalization: 'yes' or 'no'")
     timestamps: str = Field("no", description="Timestamps in output: 'yes' or 'no'")
+
+    # Long audio settings
+    max_chunk_duration_sec: int = Field(10, description="Maximum chunk duration in seconds")
 
     class Config:
         env_prefix = "CANARY_"

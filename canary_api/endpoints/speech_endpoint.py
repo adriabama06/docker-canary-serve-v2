@@ -2,11 +2,14 @@ import logging
 from typing import Optional
 import base64
 import os
+import wave
 from pydantic import BaseModel, ValidationError
 from fastapi import APIRouter, UploadFile, Request, HTTPException
 from tempfile import NamedTemporaryFile
 
 from canary_api.services.canary_service import CanaryService
+from canary_api.utils.split_audio_into_chunks import split_audio_into_chunks
+from canary_api.settings import settings
 
 logging.basicConfig(
     level=logging.INFO,
@@ -47,20 +50,51 @@ async def process_asr_request(
         logger.error("Invalid audio format (must be WAV)")
         raise HTTPException(400, "Invalid audio format (must be WAV)")
 
-    # Save to temp file
+    # Save original audio to temp file
     audio_path = save_temp_audio(audio_bytes)
 
     try:
         transcriber_with_config = CanaryService(beam_size=beam_size)
-        results = transcriber_with_config.transcribe(
-            audio_input=[audio_path],
-            batch_size=batch_size,
-            pnc=pnc,
-            timestamps=timestamps,
-            source_lang=language,
-            target_lang=language
-        )
-        return {"text": results[0].text}
+
+        # Check duration
+        with wave.open(audio_path, 'rb') as wav:
+            frames = wav.getnframes()
+            rate = wav.getframerate()
+            duration = frames / float(rate)
+
+        # Long audio, split into chunks
+        if duration > settings.max_chunk_duration_sec:
+            logger.info(f"Audio longer than 10 sec ({duration:.2f} sec), using chunked inference.")
+            chunk_paths = split_audio_into_chunks(audio_path, settings.max_chunk_duration_sec)
+
+            texts = []
+            for chunk_path in chunk_paths:
+                results = transcriber_with_config.transcribe(
+                    audio_input=[chunk_path],
+                    batch_size=batch_size,
+                    pnc=pnc,
+                    timestamps='no',  # timestamps off for now
+                    source_lang=language,
+                    target_lang=language
+                )
+                texts.append(results[0].text)
+                os.remove(chunk_path)  # remove temp chunk after processing
+
+            full_text = " ".join(texts)
+            return {"text": full_text}
+
+        else:
+            # Short audio, process as a single file
+            results = transcriber_with_config.transcribe(
+                audio_input=[audio_path],
+                batch_size=batch_size,
+                pnc=pnc,
+                timestamps=timestamps,
+                source_lang=language,
+                target_lang=language
+            )
+            return {"text": results[0].text}
+
     finally:
         os.remove(audio_path)
 
