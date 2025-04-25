@@ -72,7 +72,7 @@ async def asr_endpoint(request: Request):
     try:
         if 'multipart/form-data' in content_type:
             form_data = await request.form()
-            input_file: UploadFile = form_data.get('audio')
+            input_file: UploadFile = form_data.get('file')
             if not input_file or not input_file.filename.lower().endswith('.wav'):
                 logger.error("Missing or invalid WAV file")
                 raise HTTPException(400, "Missing or invalid WAV file")
@@ -101,7 +101,7 @@ async def asr_endpoint(request: Request):
                 logger.error("Missing or invalid WAV file")
                 raise HTTPException(400, "Missing input_audio_base64")
 
-            audio_bytes = base64.b64decode(request_data.input_audio_base64)
+            audio_bytes = base64.b64decode(request_data.file)
 
             return await process_asr_request(
                 audio_bytes,
