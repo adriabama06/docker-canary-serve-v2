@@ -74,7 +74,7 @@ async def process_asr_request(
     try:
         transcriber_with_config = CanaryService(beam_size=beam_size)
 
-        # Проверяем совместимость timestamps и flash-модели
+        # Check if timestamps are requested and if the model supports it
         if timestamps_flag and not transcriber_with_config.is_flash_model:
             logger.error("Timestamps requested but model is not flash variant")
             raise HTTPException(400, "Timestamps are only supported with flash models (e.g., canary-1b-flash)")
@@ -105,7 +105,7 @@ async def process_asr_request(
                 )
                 texts.append(results[0].text)
 
-                # Собираем таймстемпы
+                # Collect timestamps from each chunk
                 if timestamps_flag and hasattr(results[0], 'timestamp') and results[0].timestamp:
                     timestamps_all['word'].extend(results[0].timestamp.get('word', []))
                     timestamps_all['segment'].extend(results[0].timestamp.get('segment', []))

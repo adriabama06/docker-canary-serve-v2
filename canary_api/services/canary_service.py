@@ -75,7 +75,7 @@ class CanaryService:
             target_lang=target_lang,
             batch_size=batch_size,
             pnc=pnc,
-            timestamps=timestamps_flag
+            timestamps=timestamps
         )
 
 
@@ -88,7 +88,7 @@ if __name__ == "__main__":
         audio_input=['audio1.wav', 'audio2.wav'],
         batch_size=2,
         pnc='yes',
-        timestamps='yes',
+        timestamps=True,
         source_lang='en',
         target_lang='en'
     )
