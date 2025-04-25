@@ -51,7 +51,7 @@ class CanaryService:
         audio_input: list,
         batch_size: int = settings.batch_size,
         pnc: str = settings.pnc,
-        timestamps: str = settings.timestamps,
+        timestamps: bool | None = settings.timestamps,
         source_lang: str = 'en',
         target_lang: str = 'en',
     ):
@@ -61,21 +61,12 @@ class CanaryService:
         if not isinstance(audio_input, list):
             raise ValueError("audio_input must be a list of audio file paths.")
 
-        # Convert timestamps parameter from string to bool/None
-        if timestamps == 'yes':
-            timestamps_flag = True
-        elif timestamps == 'no' or timestamps is None:
-            timestamps_flag = None
-        else:
-            logger.warning(f"Unknown timestamps value '{timestamps}', defaulting to None")
-            timestamps_flag = None
-
         logger.debug({
             "source_lang": source_lang,
             "target_lang": target_lang,
             "batch_size":  batch_size,
             "pnc":         pnc,
-            "timestamps":  timestamps_flag
+            "timestamps":  timestamps
         })
 
         return self.model.transcribe(

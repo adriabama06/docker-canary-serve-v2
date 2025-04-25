@@ -58,6 +58,15 @@ async def process_asr_request(
         logger.error("Invalid audio format (must be WAV)")
         raise HTTPException(400, "Invalid audio format (must be WAV)")
 
+    # Convert timestamps parameter from string to bool/None
+    if timestamps == 'yes':
+        timestamps_flag = True
+    elif timestamps == 'no' or timestamps is None:
+        timestamps_flag = None
+    else:
+        logger.warning(f"Unknown timestamps value '{timestamps}', defaulting to None")
+        timestamps_flag = None
+
     # Save original audio to temp file
     audio_bytes = ensure_mono_wav(audio_bytes)
     audio_path = save_temp_audio(audio_bytes)
@@ -66,7 +75,7 @@ async def process_asr_request(
         transcriber_with_config = CanaryService(beam_size=beam_size)
 
         # Проверяем совместимость timestamps и flash-модели
-        if timestamps == 'yes' and not transcriber_with_config.is_flash_model:
+        if timestamps_flag and not transcriber_with_config.is_flash_model:
             logger.error("Timestamps requested but model is not flash variant")
             raise HTTPException(400, "Timestamps are only supported with flash models (e.g., canary-1b-flash)")
 
@@ -76,26 +85,32 @@ async def process_asr_request(
             rate = wav.getframerate()
             duration = frames / float(rate)
 
-        # Long audio, split into chunks
+        texts = []
+        timestamps_all = {"word": [], "segment": []}
+
         if duration > settings.max_chunk_duration_sec:
-            logger.info(f"Audio longer than 10 sec ({duration:.2f} sec), using chunked inference.")
+            logger.info(
+                f"Audio longer than {settings.max_chunk_duration_sec} sec ({duration:.2f} sec), using chunked "
+                f"inference.")
             chunk_paths = split_audio_into_chunks(audio_path, settings.max_chunk_duration_sec)
 
-            texts = []
             for chunk_path in chunk_paths:
                 results = transcriber_with_config.transcribe(
                     audio_input=[chunk_path],
                     batch_size=batch_size,
                     pnc=pnc,
-                    timestamps='no',  # timestamps off for now
+                    timestamps=timestamps_flag,
                     source_lang=language,
                     target_lang=language
                 )
                 texts.append(results[0].text)
-                os.remove(chunk_path)  # remove temp chunk after processing
 
-            full_text = " ".join(texts)
-            return {"text": full_text}
+                # Собираем таймстемпы
+                if timestamps_flag and hasattr(results[0], 'timestamp') and results[0].timestamp:
+                    timestamps_all['word'].extend(results[0].timestamp.get('word', []))
+                    timestamps_all['segment'].extend(results[0].timestamp.get('segment', []))
+
+                os.remove(chunk_path)  # remove temp chunk after processing
 
         else:
             # Short audio, process as a single file
@@ -103,11 +118,24 @@ async def process_asr_request(
                 audio_input=[audio_path],
                 batch_size=batch_size,
                 pnc=pnc,
-                timestamps=timestamps,
+                timestamps=timestamps_flag,
                 source_lang=language,
                 target_lang=language
             )
-            return {"text": results[0].text}
+            texts.append(results[0].text)
+
+            if timestamps_flag and hasattr(results[0], 'timestamp') and results[0].timestamp:
+                timestamps_all['word'].extend(results[0].timestamp.get('word', []))
+                timestamps_all['segment'].extend(results[0].timestamp.get('segment', []))
+
+        full_text = " ".join(texts)
+
+        response = {"text": full_text}
+
+        if timestamps_flag:
+            response["timestamps"] = timestamps_all
+
+        return response
 
     finally:
         os.remove(audio_path)
