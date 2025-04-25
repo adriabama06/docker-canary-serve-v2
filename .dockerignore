@@ -1,4 +1,5 @@
 /.git/
+/models/
 /.idea/
 /.venv/
 docker-compose.yml
