@@ -23,6 +23,8 @@ router = APIRouter()
 
 transcriber = CanaryService()
 
+SUPPORTED_LANGUAGES = ['en', 'de', 'fr', 'es']
+
 
 class ASRRequest(BaseModel):
     file: Optional[str] = None
@@ -47,6 +49,11 @@ async def process_asr_request(
     beam_size: int,
     batch_size: int
 ):
+    # Check if language is supported
+    if language not in SUPPORTED_LANGUAGES:
+        logger.error(f"Unsupported language '{language}'. Must be one of {SUPPORTED_LANGUAGES}")
+        raise HTTPException(400, f"Unsupported language '{language}'. Supported languages: {SUPPORTED_LANGUAGES}")
+
     if not audio_bytes or audio_bytes[:4] != b'RIFF':
         logger.error("Invalid audio format (must be WAV)")
         raise HTTPException(400, "Invalid audio format (must be WAV)")
