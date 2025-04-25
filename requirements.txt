@@ -1,6 +1,7 @@
 # API
 fastapi~=0.115.12
 uvicorn~=0.34.2
+python-multipart-0.0.20
 
 # Core
 pydantic~=2.11.3
