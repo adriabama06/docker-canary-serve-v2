@@ -74,7 +74,8 @@ docker compose up -d
 | CANARY_BATCH_SIZE  | 1                      | Batch size per request                |
 | CANARY_PNC         | yes                    | yes to keep punctuation + case        |
 | CANARY_TIMESTAMPTS | no                     | yes to request timestamps             |
-| APP_PORT           | 9000                   | Container port (mapped to host)       |
+| APP_BIND           | 0.0.0.0                | Container bind interface              |
+| APP_PORT           | 9000                   | Container port                        |
 | APP_WORKERS        | 1                      | Uvicorn worker processes              |
 
 ## HTTP API
@@ -127,7 +128,7 @@ BibTeX:
 @misc{rykov2025canaryserve,
     author = {Pavel Rykov},
     title = {Canary-Serve: NVIDIA Canary ASR HTTP API},
-    howpublished = {\url{https://github.com/EvilFreelancer/docker-canary-server}},
+    howpublished = {\url{https://github.com/EvilFreelancer/docker-canary-serve}},
     year = {2025},
     version = {1.0.0},
     note = {MIT License}
