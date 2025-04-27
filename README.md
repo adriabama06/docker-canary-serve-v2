@@ -30,6 +30,12 @@ drop of compute out of your NVIDIA GPU.
 * **Small footprint** - the live image is built from **nvidia/cuda:12.6.1-devel-ubuntu22.04**, weighs ~4.5 GB, and
   contains only runtime dependencies.
 
+## Supported models
+
+* nvidia/canary-1b
+* nvidia/canary-1b-flash
+* nvidia/canary-180m-flash
+
 ## Supported Languages
 
 | ISO | Language | ASR | Translation | Timestamps (Flash) |

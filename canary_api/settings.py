@@ -7,7 +7,7 @@ class CanarySettings(BaseSettings):
     models_path: str = Field("./models", description="Path to the models directory")
 
     # Model settings
-    model_name: str = Field("nvidia/canary-1b-flash", description="Name of the pretrained Canary model")
+    model_name: str = Field("nvidia/canary-180m-flash", description="Name of the pretrained Canary model")
     beam_size: int = Field(1, description="Beam size for decoding strategy")
     batch_size: int = Field(1, description="Default batch size for transcription")
     pnc: str = Field("yes", description="Punctuation and capitalization: 'yes' or 'no'")
