@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from canary_api.endpoints.transcriptions_endpoint import router as tts_router
+from canary_api.endpoints.transcriptions_endpoint import router as asr_router
 
 app = FastAPI(
     title="Nvidia Canary ASR API",
@@ -7,7 +7,7 @@ app = FastAPI(
     description="OpenAI-compatible API for Nvidia Canary models"
 )
 
-app.include_router(tts_router)
+app.include_router(asr_router)
 
 if __name__ == "__main__":
     import uvicorn
