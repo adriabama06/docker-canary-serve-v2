@@ -1,5 +1,7 @@
 # Canary-Serve: NVIDIA Canary ASR HTTP API
 
+[Русский](./README.md) | [中文](./README.zh.md) | **English**
+
 Canary-Serve wraps NVIDIA’s Canary multilingual `speech-to-text` checkpoints
 in a lean FastAPI server and Docker-Compose bundle.
 
