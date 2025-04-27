@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from canary_api.endpoints.speech_endpoint import router as tts_router
+from canary_api.endpoints.transcriptions_endpoint import router as tts_router
 
 app = FastAPI(
     title="Nvidia Canary ASR API",

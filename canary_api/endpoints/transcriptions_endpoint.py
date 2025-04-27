@@ -143,54 +143,29 @@ async def process_asr_request(
 
 @router.post("/inference")
 async def asr_endpoint(request: Request):
-    content_type = request.headers.get('Content-Type', '')
-
     try:
-        if 'multipart/form-data' in content_type:
-            form_data = await request.form()
-            input_file: UploadFile = form_data.get('file')
-            if not input_file or not input_file.filename.lower().endswith('.wav'):
-                logger.error("Missing or invalid WAV file")
-                raise HTTPException(400, "Missing or invalid WAV file")
 
-            audio_bytes = await input_file.read()
-            language = form_data.get('language', 'en')
-            pnc = form_data.get('pnc', 'yes')
-            timestamps = form_data.get('timestamps', 'no')
-            beam_size = int(form_data.get('beam_size', 1))
-            batch_size = int(form_data.get('batch_size', 1))
+        form_data = await request.form()
+        input_file: UploadFile = form_data.get('file')
+        if not input_file or not input_file.filename.lower().endswith('.wav'):
+            logger.error("Missing or invalid WAV file")
+            raise HTTPException(400, "Missing or invalid WAV file")
 
-            return await process_asr_request(
-                audio_bytes,
-                language,
-                pnc,
-                timestamps,
-                beam_size,
-                batch_size
-            )
+        audio_bytes = await input_file.read()
+        language = form_data.get('language', 'en')
+        pnc = form_data.get('pnc', 'yes')
+        timestamps = form_data.get('timestamps', 'no')
+        beam_size = int(form_data.get('beam_size', 1))
+        batch_size = int(form_data.get('batch_size', 1))
 
-        elif 'application/json' in content_type:
-            json_data = await request.json()
-
-            request_data = ASRRequest(**json_data)
-            if not request_data.file:
-                logger.error("Missing or invalid WAV file")
-                raise HTTPException(400, "Missing file")
-
-            audio_bytes = base64.b64decode(request_data.file)
-
-            return await process_asr_request(
-                audio_bytes,
-                request_data.language,
-                request_data.pnc,
-                request_data.timestamps,
-                request_data.beam_size,
-                request_data.batch_size
-            )
-
-        else:
-            logger.error("Unsupported media type")
-            raise HTTPException(415, "Unsupported media type")
+        return await process_asr_request(
+            audio_bytes,
+            language,
+            pnc,
+            timestamps,
+            beam_size,
+            batch_size
+        )
 
     except HTTPException as he:
         logger.error(f"Request failed: {str(he)}")
@@ -201,9 +176,3 @@ async def asr_endpoint(request: Request):
     except Exception as e:
         logger.error(f"Request failed: {str(e)}")
         raise HTTPException(500, "Internal server error")
-
-
-if __name__ == "__main__":
-    import uvicorn
-
-    uvicorn.run(router, host="0.0.0.0", port=9000)
