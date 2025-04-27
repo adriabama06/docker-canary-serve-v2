@@ -11,6 +11,7 @@ from canary_api.services.canary_service import CanaryService
 from canary_api.utils.split_audio_into_chunks import split_audio_into_chunks
 from canary_api.utils.ensure_mono_wav import ensure_mono_wav
 from canary_api.utils.generate_srt_from_words import generate_srt_from_words
+from canary_api.utils.clean_transcription import clean_transcription
 from canary_api.settings import settings
 
 logging.basicConfig(
@@ -64,6 +65,8 @@ async def process_asr_request(
     if response_format == 'text':
         timestamps_flag = None  # force disable timestamps if only text is requested
     else:
+        if response_format in ['srt', 'vtt']:
+            timestamps = 'yes'
         if timestamps == 'yes':
             timestamps_flag = True
         elif timestamps == 'no' or timestamps is None:
@@ -159,7 +162,7 @@ async def process_asr_request(
         full_text = " ".join(texts)
 
         if response_format == 'text':
-            return full_text
+            return clean_transcription(full_text)
         elif response_format == 'json':
             return {"text": full_text, "timestamps": timestamps_all if timestamps_flag else None}
         elif response_format == 'verbose_json':
