@@ -119,7 +119,7 @@ copyright and license text.
 If you use *Canary-Serve* in academic or industrial work, please cite it as:
 
 ```text
-Pavel Rykov. (2025). Canary-Serve: NVIDIA Canary ASR HTTP API (Version 1.0.0) [Computer software]. GitHub. https://github.com/EvilFreelancer/docker-canary-server
+Pavel Rykov. (2025). Canary-Serve: NVIDIA Canary ASR HTTP API (Version 1.0.0) [Computer software]. GitHub. https://github.com/EvilFreelancer/docker-canary-serve
 ```
 
 BibTeX:
