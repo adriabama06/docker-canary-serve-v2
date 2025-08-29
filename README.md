@@ -31,9 +31,10 @@ drop of compute out of your NVIDIA GPU.
 
 ## Supported models
 
-* nvidia/canary-1b
-* nvidia/canary-1b-flash
-* nvidia/canary-180m-flash
+* [nvidia/canary-1b-v2](https://huggingface.co/nvidia/canary-1b-v2)
+* [nvidia/canary-1b](https://huggingface.co/nvidia/canary-1b)
+* [nvidia/canary-1b-flash](https://huggingface.co/nvidia/canary-1b-flash)
+* [nvidia/canary-180m-flash](https://huggingface.co/nvidia/canary-180m-flash)
 
 ## Supported Languages
 

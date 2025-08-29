@@ -24,6 +24,7 @@ Canary-Serve 是一个简洁的 FastAPI 服务器，用于部署 NVIDIA Canary �
 
 ## 支持的模型
 
+* [nvidia/canary-1b-v2](https://huggingface.co/nvidia/canary-1b-v2)
 * [nvidia/canary-1b](https://huggingface.co/nvidia/canary-1b)
 * [nvidia/canary-1b-flash](https://huggingface.co/nvidia/canary-1b-flash)
 * [nvidia/canary-180m-flash](https://huggingface.co/nvidia/canary-180m-flash)
