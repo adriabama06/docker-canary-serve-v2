@@ -1,55 +1,55 @@
 # Canary-Serve: NVIDIA Canary ASR HTTP API
 
-**Русский** | [中文](./README.zh.md) | [English](./README.en.md)
+[Русский](./README.md) | [中文](./README.zh.md) | **English**
 
-Canary-Serve - это минималистичный FastAPI-сервер, позволяющий работать с многоязычными
-`speech-to-text` моделями NVIDIA Canary.
+Canary-Serve wraps NVIDIA’s Canary multilingual `speech-to-text` checkpoints
+in a lean FastAPI server and Docker-Compose bundle.
 
-Он позволяет отправить WAV-файл на единственный маршрут `/inference` и получить текстовый
-результат или субтитры всего за несколько секунд - максимально эффективно используя
-производительность вашей NVIDIA GPU.
+It lets you stream a WAV file to a single `/inference` route and receive
+plain text or subtitle formats in seconds - all while squeezing every
+drop of compute out of your NVIDIA GPU.
 
-## Возможности
+## Features
 
-* **Отметки времени для слов и сегментов** (только для моделей Flash) через простой флаг timestamps=yes|no.
+* **Word & segment timestamps** (Flash models only) via the single `timestamps=yes|no` flag.
 
-* **Переключатель PnC** - возможность включать или отключать автоматическую пунктуацию и капитализацию (PnC).
+* **PnC toggle** - decide if punctuation & capitalisation (PnC) should be generated.
 
-* **Обработка длинных аудиофайлов** - автоматическое разбиение аудио длиннее 10 секунд на части, параллельная обработка
-  и последующая сборка.
+* **Chunked long-form inference** - audio longer than 10 s is auto-split, processed in parallel, and stitched back
+  together.
 
-* **Поддержка нескольких форматов ответов** - text, srt, vtt, json и verbose_json.
+* **Multiple response formats** - text, srt, vtt, json and verbose_json
 
-* **Docker-Compose с поддержкой GPU** - по умолчанию резервируются все доступные GPU, при этом возможно тонкое
-  управление выбором устройств через стандартный `deploy.resources.reservations.devices`.
+* **GPU-aware Compose file** - reserves all GPUs by default but supports fine-grained device selection through the
+  standard Compose `deploy.resources.reservations.devices` stanza.
 
-* **Zero-copy скачивание моделей** - модели скачиваются один раз
-  через [huggingface_hub.snapshot_download](./canary_api/utils/download_model.py) и кэшируются локально.
+* **Zero-copy model download** - pulls checkpoints once
+  with [huggingface_hub.snapshot_download](./canary_api/utils/download_model.py), then re-uses the local cache.
 
-* **Компактный образ** - итоговый Docker-образ построен на `nvidia/cuda:12.6.1-devel-ubuntu22.04`, весит около 4.5 ГБ и
-  содержит только необходимые зависимости для выполнения.
+* **Small footprint** - the live image is built from **nvidia/cuda:12.6.1-devel-ubuntu22.04**, weighs ~4.5 GB, and
+  contains only runtime dependencies.
 
-## Поддерживаемые модели
+## Supported models
 
-* [nvidia/canary-1b](https://huggingface.co/nvidia/canary-1b)
-* [nvidia/canary-1b-flash](https://huggingface.co/nvidia/canary-1b-flash)
-* [nvidia/canary-180m-flash](https://huggingface.co/nvidia/canary-180m-flash)
+* nvidia/canary-1b
+* nvidia/canary-1b-flash
+* nvidia/canary-180m-flash
 
-## Поддерживаемые языки
+## Supported Languages
 
-| ISO | Язык    | ASR | Перевод  | Отметки времени (Flash) |
-|-----|---------|-----|----------|-------------------------|
-| en  | English | +   | de/fr/es | +                       |
-| de  | German  | +   | en       | +                       |
-| fr  | French  | +   | en       | +                       |
-| es  | Spanish | +   | en       | +                       |
+| ISO | Language | ASR | Translation | Timestamps (Flash) |
+|-----|----------|-----|-------------|--------------------|
+| en  | English  | +   | de/fr/es    | +                  |
+| de  | German   | +   | en          | +                  |
+| fr  | French   | +   | en          | +                  |
+| es  | Spanish  | +   | en          | +                  |
 
-> Базовые модели Canary официально поддерживают только эти четыре языка
-> как для распознавания речи (ASR), так и для перевода речи в текст.
+> The core Canary models officially support exactly these four languages for both speech
+> recognition and speech-to-text translation.
 
-## Быстрый старт
+## Quick Start
 
-### Однострочник для запуска через Docker
+### One-shot Docker run
 
 ```shell
 docker run --gpus all -it --rm \
@@ -59,44 +59,44 @@ docker run --gpus all -it --rm \
   evilfreelancer/canary-serve:latest
 ```
 
-### Запуск через Docker-Compose
+### Docker-Compose
 
-В репозитории доступен актуальный [docker-compose.dist.yml](./docker-compose.dist.yml), который автоматически
-предоставляет доступ к GPU внутри контейнера.
+A maintained [docker-compose.dist.yml](./docker-compose.dist.yml) is included,
+it automatically grants GPU access to the container.
 
 ```shell
 cp docker-compose.dist.yml docker-compose.yml
 docker compose up -d
 ```
 
-## Переменные окружения
+## Environment Variables
 
-| Variable           | Default                | Purpose                                             |
-|--------------------|------------------------|-----------------------------------------------------|
-| CANARY_MODEL_NAME  | nvidia/canary-1b-flash | Название чекпойнта Canary на Hugging Face           |
-| CANARY_MODEL_PATH  | ./models               | Путь к локальной директории для кэшированной модели |
-| CANARY_BEAM_SIZE   | 1                      | Ширина луча при декодировании                       |
-| CANARY_BATCH_SIZE  | 1                      | Размер батча на запрос                              |
-| CANARY_PNC         | yes                    | yes для включения пунктуации и регистра             |
-| CANARY_TIMESTAMPTS | no                     | yes для активации отметок времени                   |
-| APP_BIND           | 0.0.0.0                | IP-адрес для привязки сервера                       |
-| APP_PORT           | 9000                   | Порт сервера внутри контейнера                      |
-| APP_WORKERS        | 1                      | Количество процессов Uvicorn                        |
+| Variable           | Default                | Purpose                               |
+|--------------------|------------------------|---------------------------------------|
+| CANARY_MODEL_NAME  | nvidia/canary-1b-flash | Any Canary checkpoint on Hugging Face |
+| CANARY_MODEL_PATH  | ./models               | Host-mounted cache directory          |
+| CANARY_BEAM_SIZE   | 1                      | Beam width for decoding               |
+| CANARY_BATCH_SIZE  | 1                      | Batch size per request                |
+| CANARY_PNC         | yes                    | yes to keep punctuation + case        |
+| CANARY_TIMESTAMPTS | no                     | yes to request timestamps             |
+| APP_BIND           | 0.0.0.0                | Container bind interface              |
+| APP_PORT           | 9000                   | Container port                        |
+| APP_WORKERS        | 1                      | Uvicorn worker processes              |
 
 ## HTTP API
 
 `POST /inference`
 
 * Content-Type: multipart/form-data
-* Поля формы:
-    * `file` WAV-файл (моно/16 кГц), обязательно
-    * `language` en|de|fr|es (по умолчанию en)
-    * `pnc` yes|no (по умолчанию yes)
-    * `timestamps` yes|no (по умолчанию no, доступно только для Flash-моделей)
-    * `beam_size`, `batch_size` (целые числа, опционально)
-    * `response_format` json|text|srt|vtt|verbose_json (по умолчанию text)
+* Form fields
+    * `file` (WAV, mono/16 kHz) required
+    * `language` en|de|fr|es (default en)
+    * `pnc` yes|no (default yes)
+    * `timestamps` yes|no (default no, Flash only)
+    * `beam_size`, `batch_size` (ints, optional)
+    * `response_format` json|text|srt|vtt|verbose_json (default text)
 
-**Пример запроса**
+**Example**
 
 ```shell
 curl http://localhost:9000/inference \
@@ -105,7 +105,7 @@ curl http://localhost:9000/inference \
   -F response_format=text
 ```
 
-Пример успешного ответа в формате JSON:
+Successful JSON response:
 
 ```json
 {
@@ -113,16 +113,15 @@ curl http://localhost:9000/inference \
 }
 ```
 
-## Лицензия
+## License
 
-Код, Dockerfile и документация этого репозитория распространяются под лицензией MIT - короткой и разрешительной
-лицензией, допускающей как коммерческое, так и частное использование при условии сохранения оригинального авторского
-права и текста лицензии.
+This repository’s code, Dockerfiles, and documentation are released under the MIT License - a short,
+permissive license that allows commercial and private use provided you include the original
+copyright and license text.
 
-## Цитирование
+## Citation
 
-Если вы используете **Canary-Serve** в академических или продакшен проекта, пожалуйста, указывайте ссылку следующим
-образом:
+If you use *Canary-Serve* in academic or industrial work, please cite it as:
 
 ```text
 Pavel Rykov. (2025). Canary-Serve: NVIDIA Canary ASR HTTP API (Version 1.0.0) [Computer software]. GitHub. https://github.com/EvilFreelancer/docker-canary-serve
