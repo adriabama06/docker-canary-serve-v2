@@ -12,6 +12,8 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# Variable global simple (lazy single-load)
+GLOBAL_MODEL = None
 
 class CanaryService:
     """
@@ -23,6 +25,7 @@ class CanaryService:
         model_name: str = settings.model_name,
         beam_size: int = settings.beam_size
     ):
+        global GLOBAL_MODEL
         """
         Initializes the Canary model. Downloads it if not already present locally.
         """
@@ -38,13 +41,15 @@ class CanaryService:
             Path(download_model(model_name=model_name, local_dir=settings.models_path))
 
         # Load model from local path
-        self.model = EncDecMultiTaskModel.restore_from(str(model_file))
+        if GLOBAL_MODEL is None:
+            GLOBAL_MODEL = EncDecMultiTaskModel.restore_from(str(model_file))
+
         self.is_flash_model = "flash" in model_name.lower()
 
         # Apply decoding strategy
-        decode_cfg = self.model.cfg.decoding
+        decode_cfg = GLOBAL_MODEL.cfg.decoding
         decode_cfg.beam.beam_size = beam_size
-        self.model.change_decoding_strategy(decode_cfg)
+        GLOBAL_MODEL.change_decoding_strategy(decode_cfg)
 
     def transcribe(
         self,
@@ -55,6 +60,7 @@ class CanaryService:
         source_lang: str = 'en',
         target_lang: str = 'en',
     ):
+        global GLOBAL_MODEL
         """
         Transcribes or translates the given audio input.
         """
@@ -76,7 +82,7 @@ class CanaryService:
             "timestamps":  timestamps
         })
 
-        return self.model.transcribe(
+        return GLOBAL_MODEL.transcribe(
             audio_input,
             source_lang=source_lang,
             target_lang=target_lang,

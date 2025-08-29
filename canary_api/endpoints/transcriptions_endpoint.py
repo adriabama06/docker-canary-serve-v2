@@ -83,7 +83,7 @@ async def process_asr_request(
         transcriber_with_config = CanaryService(beam_size=beam_size)
 
         # Check if timestamps are requested and if the model supports it
-        if timestamps_flag and not transcriber_with_config.is_flash_model:
+        if (timestamps_flag and not transcriber_with_config.is_flash_model) and not "v2" in settings.model_name:
             logger.error("Timestamps requested but model is not flash variant")
             raise HTTPException(400, "Timestamps are only supported with flash models (e.g., canary-1b-flash)")
 

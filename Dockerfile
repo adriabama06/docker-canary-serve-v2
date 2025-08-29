@@ -8,16 +8,16 @@ WORKDIR /app
 
 
 # Anti-"sanction" fix
-RUN set -xe \
- && sed -r 's#developer.download.nvidia.com#mirror.yandex.ru/mirrors/developer.download.nvidia.com#g' -i /etc/apt/sources.list.d/cuda-*.list
+# RUN set -xe \
+#  && sed -r 's#developer.download.nvidia.com#mirror.yandex.ru/mirrors/developer.download.nvidia.com#g' -i /etc/apt/sources.list.d/cuda-*.list
 
 # Install dependencies
 RUN set -xe \
- && apt update -q \
- && apt install -fyq \
+ && apt-get update -q \
+ && apt-get install -fyq \
         bash git cmake portaudio19-dev \
-        python3 python3-pip time \
- && apt clean
+        python3 python3-pip time ffmpeg \
+ && apt-get clean
 
 # Install Python packages
 COPY requirements.txt .
